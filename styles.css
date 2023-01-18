@@ -1,0 +1,83 @@
+/*
+    Name: Anna Hoerschgen
+    Date: 12/4/2022
+*/
+
+* {
+    margin: auto;
+}
+
+body {
+    text-align: center;
+    width: 80%;
+    background-color: rgb(174, 174, 195);
+}
+
+#content {
+    height: 50%;
+    background-color: rgba(153, 153, 173, 0.497);
+    padding-bottom: 0.01em;
+    padding-top: 0.01em;
+    margin-bottom: 2.5em;
+}
+
+.moviecard {
+    background-color: rgb(120, 120, 133);
+    margin: 0.5em;
+}
+
+.description {
+    display: flex;
+    flex-direction: row;
+    margin-left: 0.5em;
+}
+
+.details {
+    margin-left: 0.25em;
+    margin-right: 0.5em;
+}
+
+img {
+    width: 30%;
+}
+
+table {
+    width: fit-content;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+#tix {
+    width: 90%;
+}
+
+#title {
+    text-align: left;
+}
+
+th {
+    margin-bottom: 0.5em;
+    text-align: center;
+}
+
+.first {
+    background-color: rgb(234, 240, 247);
+}
+
+.second {
+    background-color: rgb(193, 217, 238);
+}
+
+.ticbutton {
+    width: 80%;
+}
+
+input {
+    width: 80%;
+    justify-content: center;
+}
+
+button {
+    width: 95%;
+}
