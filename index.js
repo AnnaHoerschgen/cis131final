@@ -15,9 +15,6 @@ class content {
         this.ogTitle = ogTitle; //title in original language
         this.desc = desc; //description
         this.image = `${image}`; //image source
-        if (image == "errPoster.png") {
-            this.image = `${image}`; //this is used if an error occurs
-        }
         this.adult = adult; //is the movie Adult rated?
         this.id = `${id}`; //id
     }
@@ -25,7 +22,7 @@ class content {
 
 //ticket class to also keep information organized
 class ticket {
-    constructor(title, adult, id) {
+    constructor(title, adult, id, key) {
         this.title = title; //title of movie
         this.adult = adult;
         if (adult == true) {
@@ -34,6 +31,7 @@ class ticket {
             this.price = 3.99; //price of children's tickets
         }
         this.id = id;
+        this.key = key;
     }
 }
 
@@ -50,10 +48,10 @@ Vue.component('contentcard', {
             </div>
         </div>
         <div class="ticbutton">
-            <button @click="addAdult(movid)">
+            <button @click="addAdult(movid, movtitle)">
                 <p>Add Adult Ticket</p>
             </button>
-            <button @click="addChild(movid)">
+            <button @click="addChild(movid, movtitle)">
                 <p>Add Child Ticket</p>
             </button>
         </div>
@@ -62,19 +60,24 @@ Vue.component('contentcard', {
     `,
     props: ["movtitle", "ogtitle", "postersrc", "desc", "movid"],
     //movtitle: movie title | ogtitle: movie title in the original release language | postersrc: image source for the poster | desc: movie overview
-    data: {
-        amountAdult: 0,
-        amountChild: 0,
+    data() {
+        return {
+            amountAdult: 0,
+            amountChild: 0,
+            id: "",
+        }
     },
     methods: {
-        addAdult(id) {
+        addAdult(id, title) {
+            console.log(`id: ${id}\ntitle: ${title}`);
             this.amountAdult++;
-            app.addToCart(id, true);
+            app.addToCart(id, title, true);
             console.log(this.amountAdult);
         },
-        addChild(id) {
+        addChild(id, title) {
+            console.log(`id: ${id}\ntitle: ${title}`);
             this.amountChild++;
-            app.addToCart(id, false);
+            app.addToCart(id, title, false);
             console.log(this.amountChild);
         },
     }
@@ -93,21 +96,20 @@ Vue.component('ticket', {
         <tr>
             <td id="title" class="first">{{movtitle}}</td>
             <td class="second">
-                <p v-bind:id=aid>Adults $6.99/ea | current amt: {{amountAdult}}</p>
-                <p v-bind:id=cid>Children $3.99/ea | current amt: {{amountChild}}</p>
+                <p>Adults $6.99/ea | current amt: {{amountAdult}}</p>
+                <p>Children $3.99/ea | current amt: {{amountChild}}</p>
             </td>
             <td class="first"><p v-bind:id="movid">\${{(amountAdult * 6.99) + (amountChild * 3.99)}}</p>
-            <td class="second"><button @click=remove>Remove</button></td>
+            <td class="second"><button @click=remove(key)>Remove</button></td>
             <br>
         </tr>
     </tbody>
     `,
-    props: ["movtitle", "aid", "cid", "movid"],
+    props: ["movtitle", "movid", "key"],
     //movtitle: movie title | a-id: adult ticket id | c-id: children's ticket id | movid: movie id
     methods: {
         remove() {
-            this.amountAdult = 0;
-            this.amountChild = 0;
+            this.$emit('updateRefCartAry');
         },
     },
     data() {
@@ -124,15 +126,15 @@ Vue.component('shop', {
     <tbody id="shop">
         <tr>
             <th>Adult Subtotal:</th>
-            <td colspan="2"><p>\${{aTotal}}</p></td>
+            <td><p>\${{aTotal}}</p></td>
         </tr>
         <tr>
             <th>Child Subtotal:</th>
-            <td colspan="2"><p>\${{cTotal}}</p></td>
+            <td><p>\${{cTotal}}</p></td>
         </tr>
         <tr>
             <th>Total:</th>
-            <td colspan="2"><p>\${{total}}</p></td>
+            <td><p>\${{total}}</p></td>
             <td><button id="checkOut">Check Out</button></td>
         </tr>
     </tbody>
@@ -147,9 +149,17 @@ Vue.component('shop', {
     },
     methods: {
         addTicket(id, title, type) {
-            var newTicket = new ticket(title, type, id);
+            console.log(`id: ${id}\ntitle: ${title}\ntype: ${type}`);
+            var key = "";
+            for (i = 0; i < 6; i++) {
+                var keyTemp = Math.floor(Math.random * 10);
+                key += `${keyTemp}`;
+            }
+            var newTicket = new ticket(title, type, id, key);
+            console.log(newTicket);
             this.cartAry.push(newTicket);
             this.update();
+            this.updateRefCartAry();
         },
         checkAdult(ticket) {
             return ticket.adult;
@@ -159,7 +169,8 @@ Vue.component('shop', {
         },
         update() {
             console.log("badge clicked");
-            var adultTickets = app.cartAry.filter(this.checkAdult);
+
+            var adultTickets = this.cartAry.filter(this.checkAdult);
             if (adultTickets.length > 0) {
                 var adultPrice = adultTickets[0].price; // why is it adultTickets[0] and not adultTickets[i]? -Erica
             } else {
@@ -171,29 +182,21 @@ Vue.component('shop', {
             } else {
                 var childPrice = 0;
             }
+
             this.aTotal = adultPrice * adultTickets.length;
             this.cTotal = childPrice * childTickets.length;
             this.total = this.aTotal + this.cTotal;
         },
-        adultSub() {
-            this.getTotal();
-        },
-        childSub() {
-            this.getTotal();
-        },
-        addToCartAry(id, type) {
-            var sort = 0;
-            while (app.movAry[sort].id != id) {
-                sort++;
+        updateRefCartAry() {
+            if (app.refCartAry.length != 0) {
+                app.refCartAry.reduce();
+                app.refCartAry.pop();
             }
-            var newTicket = new ticket(app.movAry[sort].title, type, id);
-            console.log(newTicket);
-            app.cartAry.push[newTicket];
-            this.adultSub();
-            this.childSub();
-            this.getTotal();
+            for (i = 0; i < this.cartAry.length; i++) {
+                console.log(this.cartAry[i]);
+                app.refCartAry.push(this.cartAry[i]);
+            }
         },
-        getTotal() {},
     }
 })
 
@@ -206,6 +209,7 @@ const app = new Vue({
             message: "placeholder"
         },
         movAry: [], //array to keep movies in
+        refCartAry: [],
     },
     methods: {
         //populates movAry with information from the API
@@ -247,7 +251,9 @@ const app = new Vue({
             var putHere = document.getElementById("bottomText");
             putHere.innerHTML = "Tickets purchased.";
         },
-        addToCart(id, type) {}
+        addToCart(id, title, type) {
+            console.log(`id: ${id}\ntitle: ${title}\ntype: ${type}`);
+        }
     }
 })
 

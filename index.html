@@ -24,10 +24,10 @@
             <!-- /\-autopopulates the div-/\ -->
         </div>
         <div id="tix">
-            <table id="tix">
-                <tr>
-                </tr>
-                <shop></shop>
+            <table id="tickets">
+                <tickets v-for="ticket in refCartAry" :key="ticket.key" v-bind:movtitle="ticket.title" v-bind:movid="ticket.id"></tickets>
+                <shop>
+                </shop>
             </table>
         </div>
         <p id="bottomText"></p>
